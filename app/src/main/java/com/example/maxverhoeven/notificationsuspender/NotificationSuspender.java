@@ -27,11 +27,12 @@ import java.util.Set;
 public class NotificationSuspender extends NotificationListenerService {
 
     public static final String BCNLS_NAME = ".NOTIFICATION_LISTENER";
-    public static final String EXTRA_KEY = "COMMAND";
-    public static final int COMMAND_DISABLE = 0, COMMAND_ENABLE = 1, COMMAND_REVIVE = 2;
+    public static final String EXTRA_KEY =  "COMMAND";
+    public static final int COMMAND_DISABLE = 0,
+                            COMMAND_ENABLE = 1,
+                            COMMAND_REVIVE = 2;
 
     private Notification mHeadsUpPreventionNotification;
-    private boolean lastUsedHU = false;
     private NotificationManager mNotificationManager;
     private RemoteViews mEmptyHeadsUpView;
 
@@ -45,6 +46,7 @@ public class NotificationSuspender extends NotificationListenerService {
     public static boolean isServiceRunning(){
         return mIsServiceRunning;
     }
+
     @Override
     public void onNotificationPosted(StatusBarNotification sbn, RankingMap rankingMap) {
         if(mSuspendNotifications && !sbn.getPackageName().equals(getPackageName())){
@@ -120,7 +122,11 @@ public class NotificationSuspender extends NotificationListenerService {
      * @param sbn
      */
     private void autoCancelHeadsUpNotification(StatusBarNotification sbn) {
-        if (!sbn.getPackageName().equals(getPackageName()) && (sbn.getNotification().priority == Notification.PRIORITY_HIGH  || sbn.getNotification().priority == Notification.PRIORITY_MAX)) {
+        boolean isThisApp = sbn.getPackageName().equals(getPackageName());
+        boolean isHighPriority = sbn.getNotification().priority == Notification.PRIORITY_HIGH;
+        boolean isMaxPriority = sbn.getNotification().priority == Notification.PRIORITY_MAX;
+
+        if (!isThisApp && ( isHighPriority || isMaxPriority )) {
             int rID = (int) (Math.random()*10000);
             mNotificationManager.notify(rID, mHeadsUpPreventionNotification);
             mNotificationManager.cancel(rID);
@@ -155,6 +161,8 @@ public class NotificationSuspender extends NotificationListenerService {
     }
 
     private void reviveNotification(StatusBarNotification sbn) {
+        if(!sbn.isClearable() || sbn.isOngoing()) return;
+
         String packageName = sbn.getPackageName();
         int id = sbn.getId();
         Notification notification = sbn.getNotification();
