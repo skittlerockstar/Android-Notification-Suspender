@@ -1,7 +1,9 @@
 package com.example.maxverhoeven.notificationsuspender;
 
-import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -12,19 +14,21 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     NotificationSuspenderManager notificationSuspenderManager;
-
+    private NotificationReceiverMain nReceiver;
+    public static final String BCNLSM_NAME = ".NOTIFICATION_LISTENER_MAIN";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setButtons();
+        nReceiver = new NotificationReceiverMain();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(getPackageName()+BCNLSM_NAME);
+        registerReceiver(nReceiver,filter);
     }
 
     @Override
     protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        if (notificationSuspenderManager == null) {
-            notificationSuspenderManager = NotificationSuspender.getNotificationSuspenderManager();
-        }
         super.onPostCreate(savedInstanceState);
     }
 
@@ -48,15 +52,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.button2:  askPermission();
                 break;
-            case R.id.button3:  turnOnOff();
+            case R.id.button3:  sendTest(1);
                 break;
-            case R.id.button4:  stopTheService();
+            case R.id.button4:  sendTest(2);
                 break;
         }
     }
 
     private void hasPermission() {
-        Toast.makeText(this,NotificationSuspenderManager.hasPermission(this)+"",Toast.LENGTH_SHORT);
+        Toast.makeText(this,String.valueOf(NotificationSuspenderManager.hasPermission(this)),Toast.LENGTH_SHORT).show();
     }
 
     private void askPermission() {
@@ -65,23 +69,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == NotificationSuspenderManager.NOTIFICATION_ACCESS_REQUESTCODE &&
-                NotificationSuspender.isServiceConnected()) {
-            notificationSuspenderManager = NotificationSuspender.getNotificationSuspenderManager();
-        }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void turnOnOff() {
-        if (notificationSuspenderManager == null) return;
-        boolean suspendingNotifications = notificationSuspenderManager.isSuspendingNotifications();
-        notificationSuspenderManager.suspendNotifications(!suspendingNotifications);
+    private void sendTest(int action) {
+        Intent i = new Intent(getPackageName()+NotificationSuspender.BCNLS_NAME);
+        i.putExtra(NotificationSuspender.EXTRA_KEY,action);
+        sendBroadcast(i);
     }
 
     private void stopTheService() {
-        if (notificationSuspenderManager == null) return;
-        notificationSuspenderManager.reviveNotifications();
     }
 
+    class NotificationReceiverMain extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Toast.makeText(context,"RECEIVED Broadcast in MAIN",Toast.LENGTH_SHORT).show();
+        }
+    }
 
 }

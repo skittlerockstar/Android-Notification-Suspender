@@ -1,72 +1,57 @@
 package com.example.maxverhoeven.notificationsuspender;
 
+import android.content.BroadcastReceiver;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
-import android.os.IBinder;
-import android.os.Vibrator;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Requires api 24 because of android bug with reconnection of NotificationListenerService
  * Created by Max Verhoeven on 17-5-2017.
  */
-@RequiresApi(api = Build.VERSION_CODES.N)
+//@RequiresApi(api = Build.VERSION_CODES.N)
 public class NotificationSuspender extends NotificationListenerService {
 
-    public static final int CANCEL_HEADSUP_ID = 389;
+    public static final String BCNLS_NAME = ".NOTIFICATION_LISTENER";
+    public static final String EXTRA_KEY = "COMMAND";
+    public static final int COMMAND_DISABLE = 0, COMMAND_ENABLE = 1, COMMAND_REVIVE = 2;
 
     private Notification mHeadsUpPreventionNotification;
+    private boolean lastUsedHU = false;
     private NotificationManager mNotificationManager;
-    private static NotificationSuspenderManager mNotificationSuspenderManager;
-
-    private Vibrator mVibrationService;
     private RemoteViews mEmptyHeadsUpView;
 
-    private static boolean mIsServiceConnected = false;
+    private Set<StatusBarNotification> mSuspendedNotifications = new HashSet<>();
 
-    public static boolean isServiceConnected() {
-        return mIsServiceConnected;
+    private boolean mSuspendNotifications = false;
+
+    private static boolean mIsServiceRunning = false;
+    private NotificationReceiver mNSReceiver;
+
+    public static boolean isServiceRunning(){
+        return mIsServiceRunning;
     }
-
-    public static NotificationSuspenderManager getNotificationSuspenderManager() {
-        return mNotificationSuspenderManager;
-    }
-
-    /**
-     * required empty constructor
-     */
-    public NotificationSuspender() {
-        super();
-    }
-
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-    }
-
-
-    /**
-     * Is called by the system when a notification is posted.
-     * calls {@link NotificationSuspenderManager#onPostNotification(StatusBarNotification, RankingMap)}
-     * if {@link NotificationSuspenderManager#mSuspendNotifications} is set to true and the notification's id is not that of mHeadsUpPreventionNotification
-     * also calls the autoCancelHeadsUpNotification
-     *
-     * @param sbn
-     * @param rankingMap
-     */
     @Override
     public void onNotificationPosted(StatusBarNotification sbn, RankingMap rankingMap) {
-        if (mNotificationSuspenderManager.isSuspendingNotifications() && sbn.getId() != CANCEL_HEADSUP_ID) {
-            mNotificationSuspenderManager.onPostNotification(sbn, rankingMap);
+        if(mSuspendNotifications && !sbn.getPackageName().equals(getPackageName())){
+            mSuspendedNotifications.add(sbn);
             autoCancelHeadsUpNotification(sbn);
+            super.cancelNotification(sbn.getKey());
         }
-        super.onNotificationPosted(sbn, rankingMap);
     }
 
     /**
@@ -76,8 +61,25 @@ public class NotificationSuspender extends NotificationListenerService {
      */
     @Override
     public void onListenerConnected() {
-        mVibrationService = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+        mNSReceiver = new NotificationReceiver();
+        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mEmptyHeadsUpView = new RemoteViews(getPackageName(), R.layout.empty_headsup_custom_view); // Empty Headsup Notification
+        setNotification();
+        setPolicy();
+        registerNSReceiver();
+        NotificationSuspender.mIsServiceRunning = true;
+        NSLogger("Service Connected");
+        super.onListenerConnected();
+    }
+
+    private void registerNSReceiver() {
+        IntentFilter i = new IntentFilter();
+        i.addAction(getPackageName()+BCNLS_NAME);
+        registerReceiver(mNSReceiver,i);
+    }
+
+
+    private void setNotification() {
         mHeadsUpPreventionNotification = new Notification.Builder(this)
                 .setContentTitle("")
                 .setContentText("")
@@ -87,13 +89,8 @@ public class NotificationSuspender extends NotificationListenerService {
                 .setCustomHeadsUpContentView(mEmptyHeadsUpView)
                 .setAutoCancel(true)
                 .setPriority(Notification.PRIORITY_MAX).build();
-
-        mNotificationSuspenderManager = NotificationSuspenderManager.getInstance(this);
-        mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        setPolicy();
-        mIsServiceConnected = true;
-        super.onListenerConnected();
     }
+
 
     /**
      * sets the policy for notifications so that they can be cancelled correctly
@@ -111,20 +108,10 @@ public class NotificationSuspender extends NotificationListenerService {
 
     @Override
     public void onListenerDisconnected() {
-        mIsServiceConnected = false;
+        NotificationSuspender.mIsServiceRunning = false;
+        NSLogger("Service Disconnected");
         super.onListenerDisconnected();
     }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return super.onBind(intent);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
 
     /**
      * Cancels the headsup generated by notifications with PRIORITY_HIGH / PRIORITY_MAX because this isn't cancelled by default
@@ -133,11 +120,54 @@ public class NotificationSuspender extends NotificationListenerService {
      * @param sbn
      */
     private void autoCancelHeadsUpNotification(StatusBarNotification sbn) {
-        if (sbn.getNotification().priority == Notification.PRIORITY_HIGH || sbn.getNotification().priority == Notification.PRIORITY_MAX) {
-            sbn.getNotification().priority = Notification.PRIORITY_LOW;
-            setPolicy();
-            mNotificationManager.notify(CANCEL_HEADSUP_ID, mHeadsUpPreventionNotification);
-            mNotificationManager.cancel(CANCEL_HEADSUP_ID);
+        if (!sbn.getPackageName().equals(getPackageName()) && (sbn.getNotification().priority == Notification.PRIORITY_HIGH  || sbn.getNotification().priority == Notification.PRIORITY_MAX)) {
+            int rID = (int) (Math.random()*10000);
+            mNotificationManager.notify(rID, mHeadsUpPreventionNotification);
+            mNotificationManager.cancel(rID);
         }
+    }
+
+    class NotificationReceiver extends BroadcastReceiver{
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            NotificationSuspender ns = NotificationSuspender.this;
+            NSLogger("Received BC in NS:");
+            int intExtra = intent.getIntExtra(EXTRA_KEY, -1);
+            switch (intExtra){
+                    case COMMAND_ENABLE: ns.suspend(true);
+                        break;
+                    case COMMAND_DISABLE: ns.suspend(false);
+                        break;
+                    case COMMAND_REVIVE: ns.revive();
+                        break;
+            }
+        }
+    }
+
+    private void revive() {
+        mSuspendNotifications = false;
+        Iterator<StatusBarNotification> iterator = mSuspendedNotifications.iterator();
+        while (iterator.hasNext()){
+            reviveNotification(iterator.next());
+            iterator.remove();
+        }
+    }
+
+    private void reviveNotification(StatusBarNotification sbn) {
+        String packageName = sbn.getPackageName();
+        int id = sbn.getId();
+        Notification notification = sbn.getNotification();
+
+        mNotificationManager.notify(packageName,id,notification);
+        NSLogger("Reviving Notification for: "+packageName);
+    }
+
+    private void suspend(boolean b) {
+        NSLogger("Setting Suspender to:"+String.valueOf(b));
+        mSuspendNotifications = b;
+    }
+    private void NSLogger(String s){
+        Log.d("NotificationSuspender: ",s);
     }
 }
