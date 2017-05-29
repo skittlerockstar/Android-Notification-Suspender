@@ -224,7 +224,7 @@ public class NotificationSuspender extends NotificationListenerService {
      * turns off the service and revives all saved notifications
      */
     private void revive() {
-        mSuspendNotifications = false;
+        suspend(false);
         Iterator<StatusBarNotification> iterator = mSuspendedNotifications.iterator();
         while (iterator.hasNext()) {
             reviveNotification(iterator.next());
