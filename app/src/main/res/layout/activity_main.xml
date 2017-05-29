@@ -17,25 +17,25 @@
             android:id="@+id/button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Check Permission" />
+            android:text="Ask Permission" />
 
         <Button
             android:id="@+id/button2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ask Permission" />
+            android:text="Turn on Service" />
 
         <Button
             android:id="@+id/button3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Turn Service on / off" />
+            android:text="Turn off Service" />
 
         <Button
             android:id="@+id/button4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Revive Notifications and Turn off service" />
+            android:text="Revive Notifications" />
 
     </LinearLayout>
 

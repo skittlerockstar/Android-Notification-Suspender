@@ -42,11 +42,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.button:   sendTest(0);
+            case R.id.button:   askPermission();
                 break;
-            case R.id.button2:  askPermission();
+            case R.id.button2:  sendTest(1);
                 break;
-            case R.id.button3:  sendTest(1);
+            case R.id.button3:  sendTest(0);
                 break;
             case R.id.button4:  sendTest(2);
                 break;
