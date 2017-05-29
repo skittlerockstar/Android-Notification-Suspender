@@ -70,5 +70,8 @@ Then use an onActivityResult to check the result:
 Last but not least, you can do 3 things in Version 1.0 :
 
 * Enable the service - Use ```NotificationSuspenderManager.enable(context);```
+  -enables notification suspention.
 * Disable the service - Use ```NotificationSuspenderManager.disable(context);```
+  -disables notification suspention ( previously suspended notifications aren't removed! )
 * Revive the suspended notifications - Use ```NotificationSuspenderManager.revive(context);```
+  -disables notification suspention AND revives all previously suspended notifications.
