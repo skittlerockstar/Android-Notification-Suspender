@@ -15,6 +15,6 @@ To make the NotificationSuspender work, the following service needs to be added 
         
 Also the following permissions are needed:
 
- <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"/>
-    <uses-permission android:name="android.permission.VIBRATE"/> <!-- headsup will not work without this permission -->
+         <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+         <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"/>
+          <uses-permission android:name="android.permission.VIBRATE"/> <!-- headsup-cancellation will not work without this permission -->
