@@ -65,3 +65,10 @@ Then use an onActivityResult to check the result:
         super.onActivityResult(requestCode, resultCode, data);
     }
 ```
+
+### 3.3 Using the service
+Last but not least, you can do 3 things in Version 1.0 :
+
+* Enable the service - Use ```NotificationSuspenderManager.enable(context);```
+* Disable the service - Use ```NotificationSuspenderManager.disable(context);```
+* Revive the suspended notifications - Use ```NotificationSuspenderManager.revive(context);```
