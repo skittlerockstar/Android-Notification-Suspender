@@ -26,5 +26,35 @@ Also the following permissions are needed:
 
          <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
          <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"/>
-          <uses-permission android:name="android.permission.VIBRATE"/> <!-- headsup-cancellation will not work without this permission -->
-## Step 3: 
+         <uses-permission android:name="android.permission.VIBRATE"/> 
+         <!-- headsup-cancellation will not work without VIBRATE permission -->
+## Step 3 : Usage
+
+### 3.1 Adding an exception
+In the **values/notification_suspender_values.xml** exceptions list you can add packages that will be ignored by the notification suspender. 
+By default, the application that runs this notification suspender is an exception.
+
+**SUPPORT FOR ADDING RUNTIME EXCEPTIONS IN PROGRESS!**
+
+### 3.2 Checking permission.
+
+To check if the user has given permission use :
+```
+boolean userHasGivenPermission = NotificationSuspenderManager.hasPermission(activity);
+```
+
+To ask for permission, use:
+``` 
+NotificationSuspenderManager.askPermission(activity); 
+```
+Then use an onActivityResult to check the result:
+```
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == NotificationSuspenderManager.NOTIFICATION_ACCESS_REQUESTCODE 
+                && NotificationSuspender.isServiceRunning()){
+            //Permission granted and Service is running! ( not yet enabled )
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+```
