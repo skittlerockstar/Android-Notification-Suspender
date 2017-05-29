@@ -67,7 +67,7 @@ Then use an onActivityResult to check the result:
 ```
 
 ### 3.3 Using the service
-Last but not least, you can do 3 things in Version 1.0 :
+Last but not least, you can do 3 things in Version 0.1 :
 
 * Enable the service - Use ```NotificationSuspenderManager.enable(context);```  
   - enables notification suspention.
