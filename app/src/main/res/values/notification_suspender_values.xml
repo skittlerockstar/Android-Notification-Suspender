@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <string-array name="exceptions">
+        <item>com.android.dialer</item>
+        <item>com.android.incallui</item>
+    </string-array>
+</resources>

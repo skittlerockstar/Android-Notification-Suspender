@@ -9,75 +9,83 @@ import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.*;
+
 /**
- * Requires api 24 because of android bug with reconnection of NotificationListenerService
- *
- *
- *
+ * Requires api 24 because of android bug with reconnection of NotificationListenerService?
  * Created by Max Verhoeven on 17-5-2017.
  */
-
-/**
- * Usage Instructions -
- * Step 1. Check for permission - {@link NotificationSuspenderManager#hasPermission(Activity)} returns boolean.
- * Step 2. If previous returns false use - {@link NotificationSuspenderManager#askPermission(Activity)}
- *         The result will call {@link Activity#onActivityResult(int, int, Intent)}. It is successful when the following if statement passes:
- *         if(requestCode == NotificationSuspenderManager.NOTIFICATION_ACCESS_REQUESTCODE && NotificationSuspender.isServiceConnected())
- * Step 3. Now you can call the {@link NotificationSuspenderManager} instance with {@link NotificationSuspender#getNotificationSuspenderManager()}
- *         WARNING this will be null if {@link NotificationSuspender#isServiceConnected()} is false!
- * Step 4. The service will run by default after permission granted. (SEE mSuspendNotifications in this class)
- *         Call {@link NotificationSuspenderManager#suspendNotifications(boolean)} to turn it off / on.
- *         Only {@link NotificationSuspenderManager#reviveNotifications()} will first turn off the service and then re-initiate the suspended Notifications.
- */
-
-//@RequiresApi(api = Build.VERSION_CODES.N)
+@RequiresApi(api = Build.VERSION_CODES.N)
 public class NotificationSuspenderManager {
 
     public static final int NOTIFICATION_ACCESS_REQUESTCODE = 9001;
+    public static final String NOTIF_LISTENERS_ENABLED_KEY = "enabled_notification_listeners";
+    public static final String NOTIF_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS";
+
 
     /**
-     * Checks if the user has given permission for the NotificationSuspender.
-     *
+     * checks if the user has granted permission for this app to listen for notifications.
      * @param activity
-     * @return true if the user has given permission. false otherwise.
+     * @return
      */
     public static boolean hasPermission(Activity activity) {
-        String flat = Settings.Secure.getString(activity.getContentResolver(), "enabled_notification_listeners");
+        String flat = Settings.Secure.getString(activity.getContentResolver(), NOTIF_LISTENERS_ENABLED_KEY);
         return flat != null && flat.contains(".NotificationSuspender");
     }
 
     /**
-     * Prompts the user with the NotificationAccess permission screen.
-     * To catch the end of the action (user exits permission screen), use {@link Activity#onActivityResult(int, int, Intent)}
-     * Then use {@link NotificationSuspenderManager#hasPermission(Activity)}  to check if the use has granted access.
-     *
+     * Sends the user to the Notification Access Permission screen.
+     * Use an {@link Activity#onActivityResult(int, int, Intent)} for the callback.
+     * Use {@link NotificationSuspenderManager#hasPermission(Activity)}
+     * in combination with {@link NotificationSuspender#isServiceRunning()}
+     * To check if the user has granted permission and if the service is connected.
      * @param activity
      */
     public static void askPermission(Activity activity) {
-        Intent notificationAcessIntent = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+        Intent notificationAcessIntent = new Intent(NOTIF_LISTENER_SETTINGS);
         activity.startActivityForResult(notificationAcessIntent, NOTIFICATION_ACCESS_REQUESTCODE);
     }
 
+
+    /**
+     * Enables the notification suspension and saves all incoming notifications.
+     *
+     * ( DOES NOT MEAN THE SERVICE IS CONNECTED )
+     * Use {@link NotificationSuspender#isServiceRunning()} to check if the service is connected.
+     * @param c
+     */
     public static void enable(Context c){
-        Intent i = new Intent(c.getPackageName()+NotificationSuspender.BCNLS_NAME);
-        i.putExtra(NotificationSuspender.EXTRA_KEY,NotificationSuspender.COMMAND_ENABLE);
-        c.sendBroadcast(i);
+        execute(c,COMMAND_ENABLE);
     }
 
+    /**
+     * Disables the notification suspension but does not revive the saved notifications yet.
+     *
+     * @param c
+     */
     public static void disable(Context c){
-        Intent i = new Intent(c.getPackageName()+NotificationSuspender.BCNLS_NAME);
-        i.putExtra(NotificationSuspender.EXTRA_KEY,NotificationSuspender.COMMAND_DISABLE);
-        c.sendBroadcast(i);
+        execute(c,COMMAND_DISABLE);
     }
 
+    /**
+     * Disables the notification suspender just like {@link NotificationSuspenderManager#disable(Context)}
+     * And also revives all saved notifications.
+     *
+     * @param c
+     */
     public static void revive(Context c){
-        Intent i = new Intent(c.getPackageName()+NotificationSuspender.BCNLS_NAME);
-        i.putExtra(NotificationSuspender.EXTRA_KEY,NotificationSuspender.COMMAND_REVIVE);
+        execute(c,COMMAND_REVIVE);
+    }
+
+    private static void execute(Context c, int command){
+        Intent i = new Intent(c.getPackageName()+ BCNLS_NAME);
+        i.putExtra(EXTRA_KEY, command);
         c.sendBroadcast(i);
     }
 }

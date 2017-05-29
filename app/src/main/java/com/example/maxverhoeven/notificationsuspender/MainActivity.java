@@ -7,24 +7,18 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    NotificationSuspenderManager notificationSuspenderManager;
-    private NotificationReceiverMain nReceiver;
-    public static final String BCNLSM_NAME = ".NOTIFICATION_LISTENER_MAIN";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setButtons();
-        nReceiver = new NotificationReceiverMain();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(getPackageName()+BCNLSM_NAME);
-        registerReceiver(nReceiver,filter);
     }
 
     @Override
@@ -48,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.button:   hasPermission();
+            case R.id.button:   sendTest(0);
                 break;
             case R.id.button2:  askPermission();
                 break;
@@ -79,13 +73,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void stopTheService() {
-    }
-
-    class NotificationReceiverMain extends BroadcastReceiver{
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Toast.makeText(context,"RECEIVED Broadcast in MAIN",Toast.LENGTH_SHORT).show();
-        }
     }
 
 }
