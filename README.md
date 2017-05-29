@@ -1,7 +1,7 @@
 # Android-Notification-Suspender
 Cancels out all notifications. When stopped, re-initiates all suspended notifications. 
 
-**Only for Android N+ because of a bug that disconnects the service on lower API's.**
+**Only for Android N+ because of a bug that disconnects the service on lower API's.**  
 See: https://issuetracker.google.com/issues?q=notificationlistenerservice
 
 ## Step 1 : Files 
