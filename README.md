@@ -38,7 +38,7 @@ Also the following permissions are needed:
         <item>com.android.incallui</item>
 </string-array>
 ```
-The packages in this array will be ignored by the notification suspender.   
+The packages in this array will be ignored by the notification suspender.  
 By default, the application that runs this notification suspender is an exception as well.
 
 **SUPPORT FOR ADDING RUNTIME EXCEPTIONS IN PROGRESS!**
