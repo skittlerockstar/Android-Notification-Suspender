@@ -63,6 +63,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == NotificationSuspenderManager.NOTIFICATION_ACCESS_REQUESTCODE
+                && NotificationSuspender.isServiceRunning()){
+            //Permission granted and Service is running! ( not yet enabled )
+        }
         super.onActivityResult(requestCode, resultCode, data);
     }
 

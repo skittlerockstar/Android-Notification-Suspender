@@ -1,21 +1,17 @@
 package com.example.maxverhoeven.notificationsuspender;
 
 import android.app.Activity;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.provider.Settings;
-import android.service.notification.NotificationListenerService;
-import android.service.notification.StatusBarNotification;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.*;
+import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.BCNLS_NAME;
+import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.COMMAND_DISABLE;
+import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.COMMAND_ENABLE;
+import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.COMMAND_REVIVE;
+import static com.example.maxverhoeven.notificationsuspender.NotificationSuspender.EXTRA_KEY;
 
 /**
  * Requires api 24 because of android bug with reconnection of NotificationListenerService?
@@ -31,6 +27,7 @@ public class NotificationSuspenderManager {
 
     /**
      * checks if the user has granted permission for this app to listen for notifications.
+     *
      * @param activity
      * @return
      */
@@ -45,6 +42,7 @@ public class NotificationSuspenderManager {
      * Use {@link NotificationSuspenderManager#hasPermission(Activity)}
      * in combination with {@link NotificationSuspender#isServiceRunning()}
      * To check if the user has granted permission and if the service is connected.
+     *
      * @param activity
      */
     public static void askPermission(Activity activity) {
@@ -55,13 +53,13 @@ public class NotificationSuspenderManager {
 
     /**
      * Enables the notification suspension and saves all incoming notifications.
-     *
      * ( DOES NOT MEAN THE SERVICE IS CONNECTED )
      * Use {@link NotificationSuspender#isServiceRunning()} to check if the service is connected.
+     *
      * @param c
      */
-    public static void enable(Context c){
-        execute(c,COMMAND_ENABLE);
+    public static void enable(Context c) {
+        execute(c, COMMAND_ENABLE);
     }
 
     /**
@@ -69,8 +67,8 @@ public class NotificationSuspenderManager {
      *
      * @param c
      */
-    public static void disable(Context c){
-        execute(c,COMMAND_DISABLE);
+    public static void disable(Context c) {
+        execute(c, COMMAND_DISABLE);
     }
 
     /**
@@ -79,12 +77,12 @@ public class NotificationSuspenderManager {
      *
      * @param c
      */
-    public static void revive(Context c){
-        execute(c,COMMAND_REVIVE);
+    public static void revive(Context c) {
+        execute(c, COMMAND_REVIVE);
     }
 
-    private static void execute(Context c, int command){
-        Intent i = new Intent(c.getPackageName()+ BCNLS_NAME);
+    private static void execute(Context c, int command) {
+        Intent i = new Intent(c.getPackageName() + BCNLS_NAME);
         i.putExtra(EXTRA_KEY, command);
         c.sendBroadcast(i);
     }

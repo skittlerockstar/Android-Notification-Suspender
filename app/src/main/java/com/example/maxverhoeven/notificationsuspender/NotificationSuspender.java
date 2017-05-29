@@ -25,11 +25,11 @@ import java.util.Set;
 public class NotificationSuspender extends NotificationListenerService {
 
     public static final String BCNLS_NAME = ".NOTIFICATION_LISTENER";
-    public static final String EXTRA_KEY =  "COMMAND";
+    public static final String EXTRA_KEY = "COMMAND";
     private static final int STICKY_ID = 130124;
     public static final int COMMAND_DISABLE = 0,
-                            COMMAND_ENABLE = 1,
-                            COMMAND_REVIVE = 2;
+            COMMAND_ENABLE = 1,
+            COMMAND_REVIVE = 2;
 
     private NotificationManager mNotificationManager;
     private Notification mHeadsUpPreventionNotification;
@@ -44,7 +44,7 @@ public class NotificationSuspender extends NotificationListenerService {
     private static boolean mIsServiceRunning = false;
     private NotificationReceiver mNSReceiver;
 
-    public static boolean isServiceRunning(){
+    public static boolean isServiceRunning() {
         return mIsServiceRunning;
     }
 
@@ -53,12 +53,13 @@ public class NotificationSuspender extends NotificationListenerService {
      * if the service is connected and receives a notification,
      * that notification is saved and cancelled if the package of that notification is not in the exceptionlist
      * and if the notificationsuspender is turned on.
+     *
      * @param sbn
      * @param rankingMap
      */
     @Override
     public void onNotificationPosted(StatusBarNotification sbn, RankingMap rankingMap) {
-        if(mSuspendNotifications && !isException(sbn)){
+        if (mSuspendNotifications && !isException(sbn)) {
             saveNotification(sbn);
             autoCancelHeadsUpNotification(sbn);
             super.cancelNotification(sbn.getKey());
@@ -81,8 +82,10 @@ public class NotificationSuspender extends NotificationListenerService {
         NSLogger("Service Disconnected");
         super.onListenerDisconnected();
     }
+
     /**
      * returns true if the package of the StatusBarNotification is in the list of exceptions.
+     *
      * @param sbn
      * @return
      */
@@ -93,10 +96,11 @@ public class NotificationSuspender extends NotificationListenerService {
 
     /**
      * saves the incoming notification if it is not a sticky.
+     *
      * @param sbn
      */
     private void saveNotification(StatusBarNotification sbn) {
-        if(!sbn.isOngoing() && sbn.isClearable()) {
+        if (!sbn.isOngoing() && sbn.isClearable()) {
             mSuspendedNotifications.add(sbn);
         }
     }
@@ -106,7 +110,9 @@ public class NotificationSuspender extends NotificationListenerService {
      */
     private void setExceptions() {
         String[] stringArray = getResources().getStringArray(R.array.exceptions);
-        for (String s : stringArray) { mPackageExceptions.add(s); }
+        for (String s : stringArray) {
+            mPackageExceptions.add(s);
+        }
         mPackageExceptions.add(getPackageName());
     }
 
@@ -123,15 +129,15 @@ public class NotificationSuspender extends NotificationListenerService {
         mNSReceiver = new NotificationReceiver();
         mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mEmptyHeadsUpView = new RemoteViews(getPackageName(), R.layout.empty_headsup_custom_view); // Empty Headsup Notification
-            mHeadsUpPreventionNotification = new Notification.Builder(this)
-                    .setContentTitle("")
-                    .setContentText("")
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setDefaults(Notification.DEFAULT_LIGHTS)
-                    .setVibrate(new long[0])
-                    .setCustomHeadsUpContentView(mEmptyHeadsUpView)
-                    .setAutoCancel(true)
-                    .setPriority(Notification.PRIORITY_MAX).build();
+        mHeadsUpPreventionNotification = new Notification.Builder(this)
+                .setContentTitle("")
+                .setContentText("")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setDefaults(Notification.DEFAULT_LIGHTS)
+                .setVibrate(new long[0])
+                .setCustomHeadsUpContentView(mEmptyHeadsUpView)
+                .setAutoCancel(true)
+                .setPriority(Notification.PRIORITY_MAX).build();
         mStickyNSIndicator = new Notification.Builder(this)
                 .setContentTitle("Testing if is running")
                 .setContentText("Testing if is running")
@@ -146,12 +152,12 @@ public class NotificationSuspender extends NotificationListenerService {
      * sets the policy for notifications so that they can be cancelled correctly
      */
     private void setPolicy() {
-            NotificationManager.Policy policy = null;
-            policy = new NotificationManager.Policy(
-                    NotificationManager.Policy.PRIORITY_CATEGORY_MESSAGES,
-                    NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                    NotificationManager.Policy.PRIORITY_SENDERS_ANY,
-                    NotificationManager.Policy.SUPPRESSED_EFFECT_SCREEN_OFF);
+        NotificationManager.Policy policy = null;
+        policy = new NotificationManager.Policy(
+                NotificationManager.Policy.PRIORITY_CATEGORY_MESSAGES,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.PRIORITY_SENDERS_ANY,
+                NotificationManager.Policy.SUPPRESSED_EFFECT_SCREEN_OFF);
         mNotificationManager.setNotificationPolicy(policy);
         mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE);
     }
@@ -161,10 +167,9 @@ public class NotificationSuspender extends NotificationListenerService {
      */
     private void registerNSReceiver() {
         IntentFilter i = new IntentFilter();
-        i.addAction(getPackageName()+BCNLS_NAME);
-        registerReceiver(mNSReceiver,i);
+        i.addAction(getPackageName() + BCNLS_NAME);
+        registerReceiver(mNSReceiver, i);
     }
-
 
 
     /**
@@ -178,8 +183,8 @@ public class NotificationSuspender extends NotificationListenerService {
         boolean isHighPriority = sbn.getNotification().priority == Notification.PRIORITY_HIGH;
         boolean isMaxPriority = sbn.getNotification().priority == Notification.PRIORITY_MAX;
         NSLogger(sbn.getPackageName());
-        if (!isThisApp && ( isHighPriority || isMaxPriority )) {
-            int rID = (int) (Math.random()*10000);
+        if (!isThisApp && (isHighPriority || isMaxPriority)) {
+            int rID = (int) (Math.random() * 10000);
             mNotificationManager.notify(rID, mHeadsUpPreventionNotification);
             mNotificationManager.cancel(rID);
         }
@@ -189,25 +194,29 @@ public class NotificationSuspender extends NotificationListenerService {
     /**
      * sets a sticky notification for the user to see if the app is suspending notifications.
      */
-    private void placeSticky(){
-        mNotificationManager.notify(STICKY_ID,mStickyNSIndicator);
+    private void placeSticky() {
+        mNotificationManager.notify(STICKY_ID, mStickyNSIndicator);
     }
 
     /**
      * removes the sticky notification.
      */
-    private void removeSticky(){
+    private void removeSticky() {
         mNotificationManager.cancel(STICKY_ID);
     }
 
     /**
      * turns on / off the service without reviving the notifications which stay saved until they are revived.
+     *
      * @param b
      */
     private void suspend(boolean b) {
-        if(b) {placeSticky();}
-        else {removeSticky();}
-        NSLogger("Setting Suspender to:"+String.valueOf(b));
+        if (b) {
+            placeSticky();
+        } else {
+            removeSticky();
+        }
+        NSLogger("Setting Suspender to:" + String.valueOf(b));
         mSuspendNotifications = b;
     }
 
@@ -217,7 +226,7 @@ public class NotificationSuspender extends NotificationListenerService {
     private void revive() {
         mSuspendNotifications = false;
         Iterator<StatusBarNotification> iterator = mSuspendedNotifications.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             reviveNotification(iterator.next());
             iterator.remove();
         }
@@ -225,6 +234,7 @@ public class NotificationSuspender extends NotificationListenerService {
 
     /**
      * revives a notification.
+     *
      * @param sbn
      */
     private void reviveNotification(StatusBarNotification sbn) {
@@ -232,12 +242,12 @@ public class NotificationSuspender extends NotificationListenerService {
         int id = sbn.getId();
         Notification notification = sbn.getNotification();
 
-        mNotificationManager.notify(packageName,id,notification);
-        NSLogger("Reviving Notification for: "+packageName);
+        mNotificationManager.notify(packageName, id, notification);
+        NSLogger("Reviving Notification for: " + packageName);
     }
 
-    private void NSLogger(String s){
-        Log.d("NotificationSuspender: ",s);
+    private void NSLogger(String s) {
+        Log.d("NotificationSuspender: ", s);
     }
 
 
@@ -245,19 +255,22 @@ public class NotificationSuspender extends NotificationListenerService {
      * Entrypoint for {@link NotificationSuspender}.
      * Commands are received and parsed to actions.
      */
-    class NotificationReceiver extends BroadcastReceiver{
+    class NotificationReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             NotificationSuspender ns = NotificationSuspender.this;
             NSLogger("Received BC in NS:");
             int intExtra = intent.getIntExtra(EXTRA_KEY, -1);
-            switch (intExtra){
-                case COMMAND_ENABLE: ns.suspend(true);
+            switch (intExtra) {
+                case COMMAND_ENABLE:
+                    ns.suspend(true);
                     break;
-                case COMMAND_DISABLE: ns.suspend(false);
+                case COMMAND_DISABLE:
+                    ns.suspend(false);
                     break;
-                case COMMAND_REVIVE: ns.revive();
+                case COMMAND_REVIVE:
+                    ns.revive();
                     break;
             }
         }
