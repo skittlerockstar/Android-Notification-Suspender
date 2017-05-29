@@ -6,10 +6,10 @@ Only for on Android N+.
 ## Step 1 : Files 
 
 The following files are necessary :
-        NotificationSuspender.java
-        NotificationSuspenderManager.java
-        empty_heads_up_view.xml
-        notification_suspender_values.xml
+       * NotificationSuspender.java
+       * NotificationSuspenderManager.java
+       * empty_heads_up_view.xml
+       * notification_suspender_values.xml
 
 ## Step 2 : Manifest
 To make the NotificationSuspender work, the following service needs to be added to the manifest:  
