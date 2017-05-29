@@ -2,15 +2,15 @@
 Cancels out all notifications. When stopped, re-initiates all suspended notifications. 
 
 **Only for Android N+ because of a bug that disconnects the service on lower API's.**
-See:https://issuetracker.google.com/issues?q=notificationlistenerservice
+See: https://issuetracker.google.com/issues?q=notificationlistenerservice
 
 ## Step 1 : Files 
 
 The following files are necessary :
 * NotificationSuspender.java
 * NotificationSuspenderManager.java
-* empty_heads_up_view.xml
-* notification_suspender_values.xml
+* layout/empty_heads_up_view.xml
+* values/notification_suspender_values.xml
 
 ## Step 2 : Manifest
 To make the NotificationSuspender work, the following service needs to be added to the manifest:  
