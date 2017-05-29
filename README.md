@@ -31,8 +31,15 @@ Also the following permissions are needed:
 ## Step 3 : Usage
 
 ### 3.1 Adding an exception
-In the **values/notification_suspender_values.xml** exceptions list you can add packages that will be ignored by the notification suspender. 
-By default, the application that runs this notification suspender is an exception.
+**values/notification_suspender_values.xml** contains a string-array for packages that need to be ignored:  
+```
+<string-array name="exceptions">
+        <item>com.android.dialer</item>
+        <item>com.android.incallui</item>
+</string-array>
+```
+The packages in this array will be ignored by the notification suspender.   
+By default, the application that runs this notification suspender is an exception as well.
 
 **SUPPORT FOR ADDING RUNTIME EXCEPTIONS IN PROGRESS!**
 
